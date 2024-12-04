@@ -204,7 +204,6 @@ const internalAccessList = {
 						});
 				}
 			})
-			.then(internalNginx.reload)
 			.then(() => {
 				// Add to audit log
 				return internalAuditLog.add(access, {
@@ -227,7 +226,7 @@ const internalAccessList = {
 						if (row.proxy_host_count) {
 							return internalNginx.bulkGenerateConfigs('proxy_host', row.proxy_hosts);
 						}
-					})
+					}).then(internalNginx.reload)
 					.then(() => {
 						return internalAccessList.maskItems(row);
 					});
@@ -270,7 +269,7 @@ const internalAccessList = {
 				return query.then(utils.omitRow(omissions()));
 			})
 			.then((row) => {
-				if (!row) {
+				if (!row || !row.id) {
 					throw new error.ItemNotFoundError(data.id);
 				}
 				if (!skip_masking && typeof row.items !== 'undefined' && row.items) {
@@ -297,7 +296,7 @@ const internalAccessList = {
 				return internalAccessList.get(access, {id: data.id, expand: ['proxy_hosts', 'items', 'clients']});
 			})
 			.then((row) => {
-				if (!row) {
+				if (!row || !row.id) {
 					throw new error.ItemNotFoundError(data.id);
 				}
 
